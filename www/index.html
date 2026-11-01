@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>アドリブ道場</title>
+<style>
+:root{--ink:#15171a;--panel:#1e2125;--line:#33373d;--text:#ece6d6;--sub:#9aa0a8;--wood:#3a2317;--wood2:#2c1a11;--brass:#b99b62;--root:#f0a830;--char:#58c4b4;--dot:#e9e0c8;--dotink:#2a1c12}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--text);font:14px/1.5 "Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;overflow:hidden;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#app{height:100%;display:flex;flex-direction:column}
+nav{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;color:var(--sub);font:inherit;font-weight:600;padding:8px 14px;border-bottom:3px solid transparent;min-height:44px}
+nav button[aria-selected=true]{color:var(--text);border-color:var(--root)}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 12px}
+.bar label{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:12px}
+select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;font:inherit;font-size:14px;padding:6px 8px;min-height:40px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel);color:var(--sub);border:0;border-right:1px solid var(--line);font:inherit;min-width:44px;min-height:40px;padding:0 10px}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--root);color:#241503;font-weight:700}
+.chk{min-height:40px}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+#fret{flex:1;min-height:0;display:flex;align-items:center;padding:0 6px}
+#fret svg{width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.board{fill:var(--wood)} .fret{stroke:var(--brass);stroke-width:2} .nut{stroke:#e9dcc0;stroke-width:6}
+.str{stroke:#cfd3d6} .inlay{fill:#5a3b28} .fn{fill:#7c6a58;font-size:11px;text-anchor:middle}
+.frame{fill:none;stroke:var(--root);stroke-width:2;stroke-dasharray:7 5;opacity:.8}
+.dot circle{fill:var(--dot);stroke:#00000055} .dot text{fill:var(--dotink);font-size:12px;font-weight:700;text-anchor:middle;pointer-events:none}
+.dot.root circle{fill:var(--root)} .dot.char circle{fill:var(--char)} .dot.off{opacity:.2}
+.hit{fill:transparent;cursor:pointer} .ping{fill:none;stroke:#fff;stroke-width:3;animation:ping .35s ease-out forwards;pointer-events:none}
+@keyframes ping{from{r:12;opacity:.9}to{r:30;opacity:0}}
+@media(prefers-reduced-motion:reduce){.ping{animation:none;opacity:0}}
+footer{padding:8px 14px 10px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+footer .tip{flex:1;min-width:260px} footer b{color:var(--root)}
+.lg{display:flex;gap:12px;color:var(--sub);font-size:12px;white-space:nowrap}
+.lg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.soon{padding:28px 22px;max-width:560px;color:var(--sub)} .soon h2{color:var(--text);margin:0 0 6px;font-size:18px}
+.tr{margin-left:auto;display:flex;gap:12px;align-items:center;padding-right:8px}
+#cur{font-size:18px;min-width:84px;text-align:right}
+#play{background:var(--root);color:#241503;border:0;border-radius:8px;min-width:56px;min-height:44px;font-size:18px;font-weight:700}
+.dot.ct circle{stroke:#fff;stroke-width:3.5} .dot.lit circle{stroke:#ffd54a;stroke-width:4}
+.bk{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 22px;padding:12px 16px;overflow:auto;align-content:start}
+.bk label{display:flex;flex-direction:column;gap:4px;color:var(--sub);font-size:12px}
+.bk .row{display:flex;gap:10px;align-items:center;color:var(--text)} .bk input[type=range]{flex:1;min-height:40px;accent-color:var(--root)}
+.bk .row b{min-width:42px;text-align:right} .bk .row button{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 12px}
+#chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+#chips span{min-width:58px;text-align:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+#pe{grid-column:1/-1;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel)} #pe summary{cursor:pointer;font-weight:700} #pe .pr{display:flex;gap:6px;align-items:center;margin:4px 0} #pe select,#pe input[type=text]{min-height:40px;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 8px;font:inherit} #pe button{min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--ink);color:var(--text);font:inherit;padding:0 12px} #pe button.go{background:var(--char);color:#06251f;font-weight:700} #pe .pv{color:var(--sub);font-size:12px;margin:4px 0}
+#chips span.on{background:var(--root);color:#241503;border-color:var(--root);font-weight:700}
+.kb{margin:0}
+#task{flex:2;min-width:300px} #task .tt{font-size:16px;margin:2px 0} #task .sub{color:var(--sub);font-size:12px}
+#task .tb{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+#task button{min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--ink);color:var(--text);font:inherit;padding:0 14px}
+#task #td{background:var(--char);color:#06251f;border-color:var(--char);font-weight:700} #tm{color:var(--char);font-size:12px}
+.gr{display:flex;gap:10px;margin:4px 0} .gr div{display:flex;gap:2px} .gr i{width:16px;height:16px;border-radius:3px;background:var(--line)} .gr i.on{background:var(--root)}
+.rc{padding:12px 16px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px 24px;align-content:start}
+.rc h3{margin:0 0 6px;font-size:14px;color:var(--sub);font-weight:600} .rc .big{font-size:22px;font-weight:700}
+.stats{display:flex;gap:22px;grid-column:1/-1} .stats div span{display:block;color:var(--sub);font-size:12px}
+.rc table{border-collapse:collapse;width:100%} .rc td,.rc th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:center;font-weight:400}
+.rc td:first-child,.rc th:first-child{text-align:left} .rc td.ok{background:#58c4b433;color:var(--text)} .rc td{color:var(--sub)}
+.rc .bars rect{fill:var(--root)} .rc .bars text{fill:var(--sub);font-size:11px;text-anchor:middle}
+.rc button{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 12px;font:inherit}
+.rc textarea{width:100%;height:70px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;font:12px monospace}
+.rc .wk{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--line)}
+.bkw{flex:1;min-height:0;display:flex} .bkl{width:250px;overflow:auto;border-right:1px solid var(--line);padding:8px 0}
+.bkl h4{margin:10px 14px 2px;color:var(--sub);font-size:12px;font-weight:600} .bkl button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);font:inherit;padding:9px 16px;min-height:44px}
+.bkl button[aria-current=true]{background:var(--panel);box-shadow:inset 3px 0 var(--root)} .bkl small{color:var(--sub);margin-left:6px}
+.bkd{flex:1;overflow:auto;padding:14px 22px;max-width:760px} .bkd h2{margin:0 0 2px;font-size:20px} .bkd .y{color:var(--sub);margin-bottom:10px}
+.bkd h5{margin:14px 0 2px;color:var(--root);font-size:12px;letter-spacing:.04em} .bkd p{margin:0 0 6px}
+#task a{color:var(--root);text-decoration:underline;cursor:pointer}
+.th{flex:1;overflow:auto;padding:12px 18px} .th .tg{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.th .tg button{min-width:50px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--sub);font:inherit}
+.th .tg button[aria-pressed=true]{background:var(--root);color:#241503;border-color:var(--root);font-weight:700}
+.th ul{margin:4px 0 10px;padding-left:20px} .th li{margin:2px 0} .th h3{margin:14px 0 2px;font-size:14px;color:var(--root)} .th .cd{max-width:780px}
+.th button.go,.th table button{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 12px;font:inherit}
+.th table{border-collapse:collapse;max-width:780px;width:100%} .th td,.th th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.wk{fill:#ece6d6;stroke:#6b645a} .bk{fill:#1a1c1f;stroke:#000} .key{cursor:pointer}
+.fq .big{font-size:22px;font-weight:700;margin:6px 0} .fq .fb{min-height:28px;font-weight:700} .fq .fb.ok{color:var(--char)} .fq .fb.ng{color:#e0726c}
+.dot.q circle{fill:#fff} .dot.bad circle{fill:#d9534f} .dot.sol circle{fill:var(--root)} .dot.dim circle{fill:var(--dot);opacity:.35}
+.fq .go{margin:4px 6px 4px 0} .fq .row2{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:6px 0} .fq small{color:var(--sub)}
+#dr .big{font-size:20px;font-weight:700;min-height:34px;margin:6px 0} #dr .go{min-height:44px;margin:4px 8px 4px 0} #dr #dr-go{background:var(--root);color:#241503;border-color:var(--root);font-weight:700;min-width:110px}
+.dot.cur circle{fill:var(--root);stroke:#fff;stroke-width:3.5;opacity:1} .dot.nxt circle{fill:var(--char);opacity:.9} #dr .row2 input[type=range]{min-height:40px;accent-color:var(--root)}
+#fstage{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit}
+#gear{background:none;border:0;color:var(--sub);font-size:22px;min-width:44px;min-height:44px}
+.ph{flex:1;overflow:auto;padding-bottom:16px} .ph .row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 12px} .ph small{color:var(--sub)} .ph .hsec{margin:4px 12px}
+.ph .go,.ph .gc,.ph .lk{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit;padding:0 12px}
+#h-fret{display:flex;align-items:center;padding:0 6px;max-height:42vh} #h-fret svg{width:100%;max-height:42vh;touch-action:none;user-select:none;-webkit-user-select:none}
+.dot.gt3 circle{fill:#ff7a90;stroke:#fff;stroke-width:3} .dot.gt7 circle{fill:var(--char);stroke:#fff;stroke-width:3} .dot.gtn circle{fill:#000a;stroke:#fff;stroke-width:2;stroke-dasharray:3 3} .dot.gtn text{fill:#fff}
+.wzs{margin:6px 12px;padding:4px 8px;border:1px solid var(--line);border-radius:10px} .wzs.on{border-color:var(--root)} .wzs .lks,.wzs .row2{margin-left:0;margin-right:0} .wzs>button{border:0;background:none}
+.dot.ph circle{fill:#7aa2ff;stroke:#fff;stroke-width:2} .dot.ph text{fill:#08122b} .dot.ph.cur circle{fill:var(--root);stroke-width:4}
+#h-grid{margin:4px 12px;display:flex;flex-direction:column;gap:4px} .gr2{display:flex;gap:2px;align-items:center} .gr2 i{width:18px;color:var(--sub);font-style:normal;font-size:12px}
+.ph .gc{flex:1;min-width:0;padding:0;font-size:12px;color:var(--sub)} .ph .gc.bt{margin-left:5px} .ph .gc.on{background:#7aa2ff;color:#08122b;font-weight:700} .ph .gc.sus{background:#7aa2ff55}
+.ph .gc.cu{outline:2px solid var(--root)} .ph .gc.pl{border-color:var(--root);box-shadow:0 0 0 2px var(--root) inset}
+.ph .hpanel{margin:6px 0} .lks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 12px} .lk small{margin-left:6px} .lk[aria-pressed=true]{border-color:var(--root);background:#3a2f1a}
+.lkd{margin:8px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px} .lkd p{margin:6px 0} .wk2{display:flex;justify-content:space-between;align-items:center;margin:4px 12px;border-bottom:1px solid var(--line);padding-bottom:4px}
+#h-exp{margin:8px 12px;padding:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;font:12px/1.4 monospace;white-space:pre}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px 22px;min-width:300px}
+dialog::backdrop{background:#000a} dialog label{display:flex;flex-direction:column;gap:4px;margin:10px 0;color:var(--sub);font-size:12px}
+dialog .row{display:flex;gap:8px;align-items:center;color:var(--text)} dialog input[type=range]{flex:1;accent-color:var(--root);min-height:40px}
+dialog button{min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--ink);color:var(--text);font:inherit;padding:0 16px}
+
+/* ===== V24 Android縦画面向けUI ===== */
+html,body{font-size:16px;line-height:1.55}
+#top{display:flex;align-items:center;gap:8px;padding:4px 14px;min-height:52px;border-bottom:1px solid var(--line);background:var(--panel)}
+#ttl{font-size:19px} #top .tr{margin-left:auto;padding:0;gap:6px} #cur{font-size:16px;min-width:0;color:var(--root)}
+#play{min-width:48px;min-height:48px;border-radius:24px;font-size:20px} #gear{min-width:48px;min-height:48px;font-size:24px}
+#tabs{position:relative;background:var(--panel);border-top:1px solid var(--line);padding-bottom:2px}
+#tabs nav{display:flex;gap:0;padding:0;border:0}
+#tabs nav button{flex:1;min-width:0;min-height:56px;padding:0 2px;font-size:13px;border:0;border-top:3px solid transparent;background:none;color:var(--sub);font-weight:600}
+#tabs nav button[aria-selected=true]{color:var(--root);border-top-color:var(--root)}
+#more{position:absolute;right:8px;bottom:calc(100% + 8px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px #000a;z-index:20}
+#more button{min-width:150px;min-height:52px;padding:0 20px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--text);font:inherit;text-align:left}
+#more button:last-child{border:0} #more button[aria-selected=true]{color:var(--root);font-weight:700}
+select{font-size:16px;min-height:48px;border-radius:10px;padding:6px 10px;width:100%}
+.seg{max-width:100%;overflow-x:auto;scrollbar-width:none} .seg button{min-width:48px;min-height:46px;flex:none;font-size:15px}
+.pscroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px;padding-bottom:24px}
+.stick{position:sticky;top:0;z-index:5;background:var(--ink);padding-bottom:6px;border-bottom:1px solid var(--line)}
+#fret{flex:none;display:block;overflow-x:auto;overflow-y:hidden;padding:8px 0 0;-webkit-overflow-scrolling:touch}
+#fret svg{display:block;width:max(100%,880px);min-width:880px;height:auto;max-height:none;touch-action:pan-x pan-y}
+.dot text{font-size:15px} .fn{font-size:15px}
+.posrow{display:flex;align-items:center;gap:10px;padding:6px 12px 0} .posrow .lb{color:var(--sub);font-size:13px;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;padding:0 12px} .grid2 .full{grid-column:1/-1}
+.grid2 label,.optb label{display:flex;flex-direction:column;align-items:stretch;gap:4px;color:var(--sub);font-size:13px}
+.card{margin:0 12px;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#task{flex:none;min-width:0} #task .tt{font-size:18px;line-height:1.5;margin:6px 0} #task .sub{font-size:13px}
+#task .tb{gap:10px;margin-top:12px} #task button{min-height:48px;padding:0 18px;font-size:15px;border-radius:12px} #task .tb button#td{flex:1 1 40%}
+.tipc .tip{font-size:14px;line-height:1.6} .tipc .lg{margin-top:8px;flex-wrap:wrap;font-size:13px}
+details.card summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:pointer}
+.optb{display:flex;flex-direction:column;gap:14px;padding-top:8px} .optb .chk{flex-direction:row;align-items:center;min-height:48px;font-size:16px;color:var(--text)}
+.optb input[type=checkbox]{width:22px;height:22px}
+.bk{flex:1;min-height:0;grid-template-columns:1fr;gap:10px;padding:12px} .bk>label{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px}
+.bk .row button{min-height:48px} .bk input[type=range]{min-height:48px}
+#chips span{min-width:64px;padding:10px 8px}
+.rc{flex:1;min-height:0;grid-template-columns:1fr;padding:12px} .th{padding:12px} .ph{padding-bottom:24px}
+.th .tg button{min-height:48px;min-width:52px}
+.bkw{flex-direction:column} .bkl{width:100%;border:0;padding:4px 0;flex:1} .bkl button{min-height:52px;padding:12px 16px} .bkd{padding:14px 16px;max-width:none}
+.bkw:not(.det) .bkd{display:none} .bkw.det .bkl{display:none} .bkd .back{min-height:48px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 16px;font:inherit;margin-bottom:8px}
+.bkd p{font-size:16px;line-height:1.7}
+dialog{width:calc(100% - 24px);max-width:480px}
+/* V24.2 フレーズ */
+#h-fret{display:block;max-height:none;overflow-x:auto;padding:8px 0 0}
+#h-fret svg{display:block;width:max(100%,880px);min-width:880px;max-height:none;height:auto;touch-action:pan-x pan-y}
+.ph{display:flex;flex-direction:column;gap:12px;padding:0 0 24px}
+.ph .stick{padding-bottom:8px} .ph .trp{margin:8px 12px 0;flex-wrap:nowrap} .ph .trp .go{flex:1;min-height:48px} .ph .trp b{flex:none}
+.ph .grid2{padding:0 12px} .ph .grid2 .row{display:flex;gap:8px;align-items:center} .ph .asc{display:flex;align-items:center;gap:10px;margin:0 12px;min-height:44px}
+.ph .asc input,.ph .optb input[type=checkbox]{width:22px;height:22px} .ph .asi{display:block;margin:-8px 12px 0;color:var(--sub);font-size:13px}
+.ph .hsec{margin:0 12px;overflow-x:auto} .ph .hsec .seg{display:flex}
+#h-grid{margin:0 12px;overflow-x:auto;padding-bottom:4px} .gr2{width:max-content;min-width:100%;gap:3px} .gr2 i{width:22px;flex:none}
+.ph .gc{flex:none;width:38px;min-width:38px;min-height:44px;font-size:13px} .ph .gc.bt{margin-left:8px}
+.ph .row2{margin:0 12px;gap:8px} .ph .go,.ph .lk{min-height:48px} .ph .lks{margin:0 12px} .ph .lkd,.ph .wzs{margin:0 12px} .ph .hpanel{margin:0}
+.ph .card{margin:0 12px} .ph .optb .row{display:flex} .ph input[type=range]{width:100%;min-height:48px}
+.ph .degr{margin:0 12px;font-size:14px;line-height:1.5}.ph .trp .go{white-space:nowrap;padding:0 8px}
+.ph>*{flex-shrink:0}
+.bk .card{margin:0}.bk .optb>label{background:none;border:0;padding:0}.bk #pe{padding:14px;border-radius:14px}.bk #pe summary{min-height:44px;display:flex;align-items:center}.bk #pe .pr{flex-wrap:wrap}
+.bk #chips{position:sticky;top:0;z-index:4;background:var(--ink);padding:6px 0}
+/* V25.3 基礎・指板クイズ・理論・記録 */
+.th{display:flex;flex-direction:column;gap:12px;padding:12px 12px 28px} .th>*{flex-shrink:0}
+#dr-board,#fq-board{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#dr-board svg,#fq-board svg{display:block;width:max(100%,880px);min-width:880px;height:auto;touch-action:pan-x pan-y}
+#dr-board{order:-3;position:sticky;top:-12px;z-index:4;background:var(--ink);padding:12px 0 6px;border-bottom:1px solid var(--line)}
+#dr .big{order:-2;margin:0} #dr>div:has(#dr-go){order:-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#dr .go,#fq .go{min-height:48px;padding:0 18px;border-radius:12px;background:var(--panel);color:var(--text);border:1px solid var(--line);font:inherit}
+#dr #dr-go{flex:1 1 45%;font-size:17px}
+.fq .row2{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:0}
+.fq .row2>span:not(.seg),.fq .row2>label:not(.chk){display:flex;flex-direction:column;align-items:stretch;gap:4px;color:var(--sub);font-size:13px}
+.fq .row2 .chk{flex-direction:row;align-items:center;gap:10px;min-height:48px;color:var(--text)} .fq input[type=checkbox]{width:22px;height:22px}
+.fq .row2 input[type=range]{width:100%;min-height:48px}
+.fq .tg{display:flex;flex-wrap:wrap;gap:6px} .fq .tg button{min-width:52px;min-height:48px}
+.fq .big{font-size:22px} .th .cd{max-width:none} .th .cd select{width:100%}
+.th table,.rc table{display:block;overflow-x:auto;white-space:nowrap}
+.th .tg button{flex:1 0 calc(25% - 6px)}
+.rc{display:flex;flex-direction:column;gap:14px;padding:12px 12px 28px} .rc>*{flex-shrink:0}
+.rc .stats{flex-wrap:wrap;gap:12px 22px} .rc textarea{height:110px;font-size:13px} .rc button{min-height:48px}
+.rc .wk{min-height:44px} .rc svg{max-width:100%;height:auto}
+dialog{padding:18px} dialog button{min-height:48px;width:100%;margin-top:8px}
+#dr-board svg{width:max(100%,640px);min-width:640px}
+.fq .row2>.seg{display:flex;flex-direction:row}
+.rc table{display:table;white-space:normal;font-size:14px}.rc td,.rc th{padding:8px 4px}.rc td:first-child,.rc th:first-child{width:34%}
+.ph .lks{flex-direction:column}.ph .lks .lk{width:100%;text-align:left;min-height:52px}.ph .lks .lk small{display:block;margin:0}.ph #h-lf{flex-wrap:wrap}
+.ph .wzs{padding:8px}.ph .wzs>button{width:100%;text-align:left;min-height:48px;font-size:16px;margin:0}
+.pbtop{display:flex;align-items:center;gap:12px} #pb-play{flex:1;min-height:56px;border:0;border-radius:14px;background:var(--root);color:#241503;font:inherit;font-size:18px;font-weight:700} #pb-cur{font-size:22px;min-width:96px;text-align:center;color:var(--root)}
+#pchips{display:flex;flex-wrap:wrap;gap:6px} #pchips span{min-width:58px;text-align:center;padding:10px 8px;border:1px solid var(--line);border-radius:8px;background:var(--ink)} #pchips span.on{background:var(--root);color:#241503;border-color:var(--root);font-weight:700}
+#pb .row{display:flex;gap:10px;align-items:center;color:var(--text)} #pb input[type=range]{flex:1;min-height:48px;accent-color:var(--root)} #pb .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} #pb select{padding:6px 4px;font-size:14px}
+#fret svg,#h-fret svg{width:max(100%,var(--fw,880px));min-width:0}
+.stick{position:sticky} .zm{position:absolute;right:6px;top:4px;display:flex;gap:4px;z-index:6}
+.zm button{width:36px;height:36px;border-radius:12px;border:1px solid #ffffff44;background:#15171acc;color:var(--text);font:inherit;font-size:18px;padding:0}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top"><b id="ttl">練習</b><span class="tr"><b id="cur">—</b><button id="play" aria-label="再生">▶</button><button id="gear" aria-label="設定">⚙</button></span></header>
+  <main id="pg-p"><div class="pscroll">
+    <div class="stick"><div id="fret"></div><div class="zm"><button data-z="out" aria-label="縮小">－</button><button data-z="fit" aria-label="全体">全</button><button data-z="in" aria-label="拡大">＋</button></div>
+      <div class="posrow"><span class="lb">ポジション</span><span class="seg" id="pos"></span></div></div>
+    <div class="grid2">
+      <label>楽器<select id="inst"></select></label>
+      <label>キー<select id="key"></select></label>
+      <label class="full">スケール<select id="scale"></select></label>
+    </div>
+    <details class="card" id="pb" open><summary>バッキング(ドラム・ベース・コード)</summary><div class="optb">
+      <div class="pbtop"><button id="pb-play">▶ 再生</button><b id="pb-cur">—</b></div>
+      <div id="pchips"></div>
+      <label>進行<select id="pb-prog"></select></label>
+      <label>BPM<span class="row"><input type="range" id="pb-bpm" min="40" max="200"><b id="pb-bpmv"></b></span></label>
+      <label>伴奏の音量<span class="row"><input type="range" id="pb-vol" min="0" max="100"></span></label>
+      <div class="grid3"><label>ドラム<select id="pb-drum"></select></label><label>ベース<select id="pb-bass"></select></label><label>コード<select id="pb-comp"></select></label></div>
+      <label class="chk"><input type="checkbox" id="pb-asc"> コードごとにスケールを自動で切り替える</label>
+    </div></details>
+    <div id="task" class="card"></div>
+    <div class="card tipc"><div class="tip" id="tip"></div>
+      <div class="lg"><span><i style="background:var(--root)"></i>ルート</span><span><i style="background:var(--char)"></i>特徴音</span><span><i style="background:var(--dot)"></i>スケール音</span></div></div>
+    <details class="card" id="opt"><summary>表示・練習の設定</summary><div class="optb">
+      <label>表示<span class="seg" id="mode"><button data-m="note">音名</button><button data-m="deg">度数</button><button data-m="none">なし</button></span></label>
+      <label>範囲(フレット)<span class="seg" id="view"></span></label>
+      <label>レベル<span class="seg" id="lv"></span></label>
+      <label>足場外し<span class="seg" id="fade"><button data-v="0">オフ</button><button data-v="1">オン</button></span><button id="fstage" hidden></button></label>
+      <label>1本だけ<select id="only"></select></label>
+      <label class="chk"><input type="checkbox" id="left"> 左利き</label>
+    </div></details>
+  </div></main>
+  <main id="pg-h" hidden><div class="ph" id="ph"></div></main>
+  <main id="pg-b" hidden><div class="bk">
+    <label>進行(キー=練習タブで選んだキー)<select id="bprog"></select></label>
+    <div id="chips"></div>
+    <label>BPM<span class="row"><input type="range" id="bpm" min="40" max="200"><b id="bpmv"></b><button id="tap">タップ</button></span></label>
+    <label><span class="row"><input type="checkbox" id="asc"> コードごとにスケールを自動で切り替える(練習タブの指板が、いまのコードのスケールに追従。停止中は下のコードをタップ)</span></label>
+    <details class="card" id="bk-r"><summary>リズム・伴奏の設定</summary><div class="optb">
+    <label>スウィング(0=ストレート 100=3連のハネ)<span class="row"><input type="range" id="swing" min="0" max="100" step="5"><b id="swv"></b>
+      <span class="seg" id="swm"><button data-v="8">8分</button><button data-v="16">16分</button></span></span></label>
+    <label>カウントイン<select id="count"><option value="0">なし</option><option value="1">1小節</option><option value="2">2小節</option></select></label>
+    <label>キーシャッフル(進行を何周ごとに別のキーへ)<select id="shuf"><option value="0">オフ</option><option value="1">毎周</option><option value="2">2周ごと</option><option value="4">4周ごと</option></select></label>
+    <label>足場外しの間隔(何周ごとに表示を減らす)<select id="fev"><option value="1">毎周</option><option value="2">2周ごと</option><option value="4">4周ごと</option></select></label>
+    <label>ドラム<select id="drum"></select></label>
+    <label>ベース<select id="bass"></select></label>
+    <label>コード<select id="comp"></select></label>
+    </div></details>
+    <details class="card" id="bk-v"><summary>音量</summary><div class="optb">
+    <label>音量 伴奏全体(ドラム・ベース・コードをまとめて)<span class="row"><input type="range" id="v-band" min="0" max="100"></span></label>
+    <label>音量 フレーズ(フレーズタブで鳴らす音)<span class="row"><input type="range" id="v-phrase" min="0" max="100"></span></label>
+    <label>音量 ドラム<span class="row"><input type="range" id="v-drum" min="0" max="100"></span></label>
+    <label>音量 ベース<span class="row"><input type="range" id="v-bass" min="0" max="100"></span></label>
+    <label>音量 コード<span class="row"><input type="range" id="v-chord" min="0" max="100"></span></label>
+    </div></details>
+    <details id="pe"><summary>自作進行エディタ</summary><div id="pe-body"></div></details>
+  </div></main>
+  <main id="pg-k" hidden><div class="bkw"><div class="bkl" id="bkl"></div><div class="bkd" id="bkd"></div></div></main>
+  <main id="pg-d" hidden><div class="th fq" id="dr"></div></main>
+  <main id="pg-f" hidden><div class="th fq" id="fq"></div></main>
+  <main id="pg-l" hidden><div class="rc" id="rc"></div></main>
+  <main id="pg-r" hidden><div class="th" id="th"></div></main>
+  <main id="pg-x" hidden><div class="soon" id="soon"></div></main>
+  <div id="tabs" role="tablist">
+    <div id="more" hidden><button data-t="f">指板</button><button data-t="k">教本</button><button data-t="r">理論</button><button data-t="l">記録</button></div>
+    <nav><button role="tab" data-t="p" aria-selected="true">練習</button><button role="tab" data-t="h">フレーズ</button><button role="tab" data-t="b">伴奏</button><button role="tab" data-t="d">基礎</button><button id="morebtn" data-more="1">その他</button></nav>
+  </div>
+</div>
+<dialog id="set"><b>設定</b>
+  <label>画面表示の遅れ補正(ms)。コードの表示が音より早い/遅いときに調整<span class="row"><input type="range" id="off" min="-200" max="200" step="10"><b id="offv"></b></span></label>
+  <label>ギターのチューニング<select id="tun"><option value="std">スタンダード</option><option value="dropD">ドロップD</option><option value="halfDown">半音下げ</option></select></label>
+  <p style="color:var(--sub);font-size:12px;margin:8px 0">音はすべて端末内で合成しています(ピアノ音源は同梱していません)。Bluetoothイヤホンは遅延が大きくなります。</p>
+  <button id="setx">閉じる</button></dialog>
+<script src="core/theory.js"></script>
+<script src="core/audio.js"></script>
+<script src="core/music.js"></script>
+<script src="core/engine.js"></script>
+<script src="core/tasks.js"></script>
+<script src="core/drills.js"></script>
+<script src="core/drillrun.js"></script>
+<script src="core/store.js"></script>
+<script src="core/fretquiz.js"></script>
+<script src="core/book.js"></script>
+<script src="data/rules.js"></script>
+<script src="data/thoughts.js"></script>
+<script src="data/guides.js"></script>
+<script src="data/tech.js"></script>
+<script src="data/tech2.js"></script>
+<script src="data/lessons.js"></script>
+<script src="core/phrase.js"></script>
+<script src="data/licks.js"></script>
+<script src="ui/fretboard.js"></script>
+<script src="ui/phrase.js"></script>
+<script src="ui/keyboard.js"></script>
+<script>
+(() => {
+  const T = ADL, $ = s => document.querySelector(s), KEY = 'adl_set';
+  const SOON = {
+    b: ['バッキング', 'コードループ・BPM・スウィング・ドラム/ベース自動伴奏(M3で実装)'],
+    k: ['教本', 'テクニック用語辞典・かっこよく聞こえる考え方・共通ルール(M5で実装)'],
+    r: ['理論', 'スケール辞典・初見スケール攻略カード(M5で実装)'],
+    l: ['記録', '練習時間・達成・苦手・バックアップ(M4で実装)']
+  };
+  let S = { inst: 'guitar', key: 0, scale: 'mpent', sel: 1, mode: 'note', left: false, fade: 0, only: -1 };
+  try { Object.assign(S, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
+  const BKD = { prog: 'minor4', bpm: 100, swing: 0, swMode: '8', count: 1, drum: 'rock8', bass: 'root8', comp: 'whole', shuffle: 0, fadeEvery: 2, vol: { band: 1, phrase: 1, drum: 0.8, bass: 0.9, chord: 0.6 } };
+  S.bk = Object.assign({}, BKD, S.bk || {}); S.bk.vol = Object.assign({}, BKD.vol, S.bk.vol);
+  const MU = ADLMusic; S.cp = MU.setCustom(S.cp); if (!MU.PROGS[S.bk.prog]) S.bk.prog = 'minor4'; let ct = null; S.view = S.view === 'high' ? 'high' : 'low';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  const last = {};
+  const opts = (el, list, v) => { el.innerHTML = list.map(([k, n]) => `<option value="${k}">${n}</option>`).join(''); el.value = v; };
+  opts($('#inst'), Object.entries(T.INSTR).map(([k, v]) => [k, v.n]), S.inst);
+  opts($('#key'), T.NOTE_S.map((n, i) => [i, T.NOTE_S[i] === T.NOTE_F[i] ? n : n + ' / ' + T.NOTE_F[i]]), S.key);
+  if (Array.isArray(S.custom)) T.SCALES.custom = { n: 'カスタム', iv: S.custom, ch: T.analyze(S.custom).extra, tip: '理論タブで作ったスケール。特徴音は青緑で表示。' };
+  if (!T.SCALES[S.scale]) S.scale = 'mpent';
+  const scaleOpts = () => opts($('#scale'), Object.entries(T.SCALES).map(([k, v]) => [k, v.n]), S.scale);
+  scaleOpts();
+  $('#left').checked = S.left;
+
+  let positions = [], lapNo = 0, fman = 0;
+  const FST = ['全部の音', 'ルートだけ', 'コードトーンだけ', '表示なし'];
+  const stage = () => ADLEngine.running ? Math.min(3, Math.floor(lapNo / S.bk.fadeEvery)) : fman;
+  function draw() {
+    const AS = B.autoSc ? autoInfo() : null, K = AS ? AS.root : S.key, SCI = AS ? AS.scale : S.scale;   // コード別スケール自動提案中は、そのコードのルート・スケールで表示
+    const inst = T.INSTR[S.inst], sc = T.SCALES[SCI];
+    T.INSTR.guitar.strings = T.INSTR.guitar.tunings[S.tuning] || T.INSTR.guitar.tunings.std;
+    const keys = !!inst.keys;
+    positions = keys ? [0, 1, 2].map(i => ({ no: i + 1, variants: [{ lo: 0, hi: 0, notes: [] }] })) : T.buildPositions(inst.strings, sc, K, inst.frets);
+    if (S.sel > positions.length && !AS) S.sel = 1;
+    const sel = S.sel > positions.length ? 1 : S.sel;
+    $('#view').parentNode.hidden = keys;
+    // 選んだポジションが今の範囲に出てこないときは、範囲を自動で切り替える
+    if (!keys && sel && !positions[sel - 1].variants.some(v => T.fitsView(v, T.viewRange(inst, S.view)))) S.view = S.view === 'low' ? 'high' : 'low';
+    if (S.only >= inst.strings.length) S.only = -1;
+    $('#only').parentNode.hidden = keys; $('#fade').parentNode.hidden = keys;
+    if (!keys) opts($('#only'), [[-1, 'すべての弦'], ...inst.strings.map((_, i) => [i, (inst.strings.length - i) + '弦'])], S.only);
+    const fst = S.fade ? stage() : 0, vr = keys ? null : T.viewRange(inst, S.view);
+    document.querySelectorAll('#fade button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === +S.fade));
+    $('#fstage').hidden = !S.fade || keys; $('#fstage').textContent = '足場:' + FST[fst] + (ADLEngine.running ? '' : '(タップで次へ)');
+    const cts = ct || MU.chordAt(B.prog, S.key, 0).pcs;
+    const tk = typeof task !== 'undefined' && task && task.hl && S.tl !== false ? task : null, lit = tk ? tk.hl : null;   // お題の音を指板に出す(solo=その音だけ、それ以外=ほかを薄く)
+    const vis = q => (!tk || !tk.solo || lit.includes(q.d)) && (S.only < 0 || q.s === S.only) && (!S.fade || fst === 0 || (fst === 1 && q.d === 0) || (fst === 2 && cts.includes(T.pc(q.p)))) && !(S.fade && fst === 3);
+    const selv = S.only >= 0 || fst >= 3 ? 0 : sel;
+    if (!keys) $('#view').innerHTML = ['low', 'high'].map(k => { const r = T.viewRange(inst, k); return `<button data-v="${k}" aria-pressed="${k === S.view}">${r.a}〜${r.b}</button>`; }).join('');
+    $('#pos').innerHTML = ['全', ...positions.map(p => p.no)].map((l, i) => `<button data-p="${i}" aria-pressed="${i === sel}">${l}</button>`).join('');
+    document.querySelectorAll('#mode button').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === S.mode));
+    if (keys) ADLKeys.render($('#fret'), { scale: SCI, key: K, sel: sel, mode: S.mode, ct, vis, lit }); else ADLFret.render($('#fret'), { inst: S.inst, scale: SCI, key: K, positions, sel: selv, mode: S.mode, left: S.left, view: vr, ct, vis, lit });
+    const name = T.noteName(K, K, SCI) + ' ' + sc.n;
+    const v = !keys && sel ? (positions[sel - 1].variants.find(x => T.fitsView(x, vr)) || positions[sel - 1].variants[0]) : null;
+    $('#tip').innerHTML = `<b>${name}</b>　${keys ? (sel ? `オクターブ${sel}(ポジション${sel})` : '全オクターブ') : sel ? `ポジション${sel}(${v.lo}〜${v.hi}フレット)` : '全ポジション'}<br>${sc.tip}` + (AS ? `<br><b>いまのコード ${AS.chord} → ${AS.name}</b>(${AS.why})` : '');
+    if (S.fade && !keys) $('#tip').innerHTML += `<br>足場外し:いまは「${FST[fst]}」`;
+    { const fr = $('#fret'), sig = [S.inst, SCI, K, sel, S.view].join(), fm = fr.querySelector('.frame');   // 選択ポジションを画面中央へ
+      if (fm && sig !== fr._sig) { const r = fm.getBoundingClientRect(), c = fr.getBoundingClientRect(); fr.scrollLeft += r.left + r.width / 2 - (c.left + c.width / 2); } fr._sig = sig; }
+    save();
+  }
+  $('#only').onchange = e => { S.only = +e.target.value; draw(); };
+  $('#fade').onclick = e => { const b = e.target.closest('button'); if (b) { S.fade = +b.dataset.v; fman = 0; draw(); } };
+  $('#fstage').onclick = () => { if (!ADLEngine.running) { fman = (fman + 1) % 4; draw(); } };
+  $('#inst').onchange = e => { S.inst = e.target.value; draw(); };
+  $('#key').onchange = e => { S.key = +e.target.value; draw(); };
+  $('#scale').onchange = e => { S.scale = e.target.value; draw(); };
+  $('#left').onchange = e => { S.left = e.target.checked; draw(); };
+  $('#view').onclick = e => { const b = e.target.closest('button'); if (b) { S.view = b.dataset.v; draw(); } };
+  $('#pos').onclick = e => { const b = e.target.closest('button'); if (b) { S.sel = +b.dataset.p; draw(); } };
+  $('#mode').onclick = e => { const b = e.target.closest('button'); if (b) { S.mode = b.dataset.m; draw(); } };
+
+  // タップで即発音(pointerdown)。同じ弦の前の音は止める。
+  $('#fret').addEventListener('pointerup', e => { if (window.__pinch) return;
+    const kk = e.target.closest('.key');
+    if (kk) { ADLAudio.play(+kk.dataset.m); return; }
+    const h = e.target.closest('.hit'); if (!h) return;
+    const s = +h.dataset.s, f = +h.dataset.f, strings = T.INSTR[S.inst].strings;
+    ADLAudio.mute([last[s]]); last[s] = ADLAudio.play(strings[s] + f);
+    const dot = h.parentNode.querySelector('.hit').ownerSVGElement;
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', +h.getAttribute('x') + +h.getAttribute('width') / 2); c.setAttribute('cy', +h.getAttribute('y') + 19); c.setAttribute('class', 'ping');
+    dot.appendChild(c); setTimeout(() => c.remove(), 400);
+  });
+  $('#tabs').onclick = e => {
+    const mb = e.target.closest('[data-more]'); if (mb) { $('#more').hidden = !$('#more').hidden; return; }
+    const b = e.target.closest('button[data-t]'); if (!b) return;
+    document.querySelectorAll('#tabs button[data-t]').forEach(x => x.setAttribute('aria-selected', x === b));
+    $('#more').hidden = true; $('#morebtn').setAttribute('aria-selected', !!b.closest('#more')); $('#ttl').textContent = b.textContent === '伴奏' ? 'バッキング' : b.textContent;
+    const t = b.dataset.t; document.querySelectorAll('main').forEach(m => { m.hidden = m.id !== 'pg-' + t; });
+    if (ADLDrill.running && t !== 'd') ADLDrill.stop();
+    if (t === 'd') renderDR();
+    if (t === 'f') renderFQ();
+    if (t === 'l') renderLog(); if (t === 'k') renderBook();
+    if (t === 'r') renderTheory();
+    if (t === 'h') ADLPhraseUI.show();
+  };
+  // ---- 理論 ----
+  let TH = { sec: 'card', iv: T.SCALES[S.scale].iv.slice(), q: 'm7' };
+  const nn = d => T.noteName(S.key + d, S.key, S.scale) + '(' + T.DEG[d] + ')';
+  const presetOf = iv => Object.entries(T.SCALES).find(([k, v]) => k !== 'custom' && v.iv.join() === iv.join());
+  function renderTheory() {
+    const secs = [['card', '攻略カード'], ['chord', 'コードトーン早見'], ['mode', 'モード対応表']], key = T.noteName(S.key, S.key, S.scale);
+    let h = `<div class="seg" id="thsec">${secs.map(([k, n]) => `<button data-s="${k}" aria-pressed="${TH.sec === k}">${n}</button>`).join('')}</div>`;
+    if (TH.sec === 'card') {
+      const iv = TH.iv, a = T.analyze(iv), p = presetOf(iv), list = x => x.length ? x.map(nn).join('・') : 'なし';
+      h += `<div class="cd"><p style="color:var(--sub)">スケールを選ぶか、下の音をタップして自分で作ると、攻略のヒントを自動で作ります。(キー:${key})</p>
+        <select id="thpre"><option value="">カスタム</option>${Object.entries(T.SCALES).filter(([k]) => k !== 'custom').map(([k, v]) => `<option value="${k}" ${p && p[0] === k ? 'selected' : ''}>${v.n}</option>`).join('')}</select>
+        <div class="tg">${T.DEG.map((d, i) => `<button data-d="${i}" aria-pressed="${iv.includes(i)}">${T.noteName(S.key + i, S.key, S.scale)}<br><small>${d}</small></button>`).join('')}</div>`;
+      if (iv.length < 3) h += '<p>3音以上選んでください。</p>';
+      else {
+        const t3 = a.third == null ? 7 : a.third;
+        h += `<h3>${key} ${p ? p[1].n : 'カスタム'}(${a.n}音)</h3><ul>
+          <li>構成音:${iv.map(nn).join('・')}</li>
+          <li>${a.ref}との違い:追加 ${list(a.extra)} / 抜けている ${list(a.missing)}</li>
+          <li>特徴音:${a.extra.length ? list(a.extra) : 'なし(ペンタなどは、ぶつかる音を抜いた形)'}</li>
+          <li>安定音:${list(a.tones)}</li><li>避けたい音(長く伸ばさない):${list(a.avoid)}</li>
+          <li>合うコード:${a.quality ? key + a.quality : '3度がないので、パワーコードやsusが合う'}</li></ul>
+          <h3>試すお題</h3><ul>
+          <li>${a.extra.length ? `特徴音${nn(a.extra[0])}を1回入れて、すぐ${nn(0)}か${nn(t3)}に着地する。` : '好きな音を1つ足して、短く通り過ぎる。'}</li>
+          <li>小節の頭(1拍目)は ${a.tones.map(nn).join('・')} のどれかにする。</li><li>${nn(0)}で終わるフレーズを2小節作る。</li></ul>
+          <h3>攻略5手順(共通ルール R13)</h3><ol style="margin:4px 0 10px;padding-left:20px"><li>音数を数える:${a.n}音。</li><li>${a.ref}との違いを見る:${a.extra.length ? '特徴音は ' + list(a.extra) : '追加された音はない'}。</li><li>ルート(${nn(0)})とコードトーンを指板で見つける。</li><li>ポジション1だけ覚える。</li><li>特徴音を1回入れて、安定した音に着地する。</li></ol>
+          <button class="go" id="thview">指板で見る</button> <button class="go" id="thr13">共通ルールR13を読む</button>`;
+      }
+      h += '</div>';
+    } else if (TH.sec === 'chord') {
+      const Q = Object.keys(T.CH), iv = T.CH[TH.q];
+      h += `<div class="cd"><p style="color:var(--sub)">コードを選ぶと、そのコードトーン(1・3・5・7度)を表示します。(キー:${key})</p>
+        <select id="thq">${Q.map(q => `<option value="${q}" ${q === TH.q ? 'selected' : ''}>${key}${T.CHS[q]}</option>`).join('')}</select>
+        <h3>${key}${T.CHS[TH.q]} のコードトーン</h3><ul>${iv.map(i => `<li>${nn(i)}</li>`).join('')}</ul>
+        <button class="go" id="chview">指板で見る</button><p style="color:var(--sub);font-size:12px">練習タブでは、いま選んでいるスケールに含まれる音だけ白い輪で表示されます。</p></div>`;
+    } else {
+      h += `<div class="cd"><p>モードは、同じ7音の「始める位置」を変えたもの。形は親メジャーと同じで、特徴音がモードの個性になる。(ルート:${key})</p><table><tr><th>モード</th><th>特徴音</th><th>同じ音を使うメジャー</th><th></th></tr>` +
+        T.MODES.map(m => `<tr><td>${key} ${m.n}</td><td>${m.ch}</td><td>${T.noteName(S.key - T.MAJ[m.from - 1], S.key)}メジャーの${m.from}番目から</td><td>${m.sc ? `<button data-go="${m.sc}">指板で見る</button>` : ''}</td></tr>`).join('') + '</table></div>';
+    }
+    $('#th').innerHTML = h;
+  }
+  function showScale(id) { S.scale = id; scaleOpts(); S.sel = 1; $('#tabs button[data-t=p]').click(); draw(); newTask(); }
+  $('#th').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.s) { TH.sec = b.dataset.s; renderTheory(); }
+    else if (b.dataset.d) { const d = +b.dataset.d; if (d) { TH.iv = TH.iv.includes(d) ? TH.iv.filter(x => x !== d) : [...TH.iv, d].sort((x, y) => x - y); renderTheory(); } }
+    else if (b.dataset.go) showScale(b.dataset.go);
+    else if (b.id === 'thr13') openBook('R13');
+    else if (b.id === 'chview') { ct = T.CH[TH.q].map(i => T.pc(S.key + i)); $('#tabs button[data-t=p]').click(); draw(); }
+    else if (b.id === 'thview') { const p = presetOf(TH.iv);
+      if (p) showScale(p[0]); else { T.SCALES.custom = { n: 'カスタム', iv: TH.iv.slice(), ch: T.analyze(TH.iv).extra, tip: '理論タブで作ったスケール。特徴音は青緑で表示。' }; S.custom = TH.iv.slice(); showScale('custom'); } } };
+  $('#th').onchange = e => { if (e.target.id === 'thpre' && e.target.value) { TH.iv = T.SCALES[e.target.value].iv.slice(); renderTheory(); } if (e.target.id === 'thq') { TH.q = e.target.value; renderTheory(); } };
+  // ---- 教本 ----
+  let bookId = 'g-road'; const BK = ADLBook, tl = { g: 'ギター', b: 'ベース', k: '鍵盤' };
+  function renderBook() {
+    $('#bkl').innerHTML = BK.chapters.map(c => `<h4>${c.n}</h4>` + BK.list(c).map(i => `<button data-i="${i.id}" aria-current="${i.id === bookId}">${i.n}${i.cat ? `<small>${i.cat}</small>` : ''}</button>`).join('')).join('');
+    const it = BK.items[bookId], sec = (h, t) => t ? `<h5>${h}</h5><p>${t}</p>` : '';
+    let d = `<button class="back" id="bkback">← 一覧へ</button><h2>${it.id.match(/^[RK]\d/) ? it.id + ' ' : ''}${it.n}</h2>`;
+    if (it.k === 'rule') d += sec('内容', it.what) + sec('使い方', it.how) + sec('例', it.ex) + sec('練習お題', it.task);
+    else if (it.k === 'thought') d += sec('やること', it.do) + sec('なぜ効くか', it.why) + sec('例', it.ex);
+    else if (it.k === 'guide') d += it.body.map(x => `<p>${x}</p>`).join('');
+    else d += `<div class="y">${it.yomi}・${it.cat}</div>` + sec('やり方', it.how) + sec('使いどころ', it.use) + sec('注意点', it.warn) + sec('聴きどころ', it.hear) + sec('練習フレーズ', it.ph.join('<br>')) + sec('楽器別の違い', Object.keys(it.diff).map(k => `${tl[k]}:${it.diff[k]}`).join('<br>'));
+    $('#bkd').innerHTML = d;
+  }
+  $('#bkl').onclick = e => { const b = e.target.closest('button'); if (b) { bookId = b.dataset.i; renderBook(); $('.bkw').classList.add('det'); $('#bkd').scrollTop = 0; } };
+  $('#bkd').onclick = e => { if (e.target.id === 'bkback') $('.bkw').classList.remove('det'); };
+  function openBook(id) { if (!BK.items[id]) return; bookId = id; $('#tabs button[data-t=k]').click(); $('.bkw').classList.add('det'); }
+  // ---- お題・記録 ----
+  const TKS = ADLTasks, ST = ADLStore, LVN = ['ポジション1で遊ぶ', 'リズムの型', '隣とつなぐ', '全ポジション', 'ペンタ以外'];
+  const KN = { notes: '音を絞る', rhythm: 'リズム', rest: '休符', motif: 'モチーフ', call: 'コール&レスポンス', end: '終わり方', tech: '奏法', range: '範囲', chord: 'コードトーン', appr: '近接音', one: '1本の弦', scaf: '足場外し', shuf: 'キーシャッフル' };
+  let LOG = ST.load('log', {}), DONE = ST.load('done', {}), WEAK = ST.load('weak', {}), task = null, lastId = null;
+  S.lv = S.lv || 1;
+  const lvBtns = () => { $('#lv').innerHTML = [1, 2, 3, 4, 5].map(n => `<button data-l="${n}" aria-pressed="${n === S.lv}" title="${LVN[n - 1]}">${n}</button>`).join(''); };
+  const tctx = () => ({ lv: S.lv, sc: T.SCALES[S.scale], scId: S.scale, key: S.key, posNo: S.sel || 1, nPos: positions.length, inst: S.inst, nStr: (T.INSTR[S.inst].strings || []).length || 6, only: S.only, rnd: Math.random });
+  function renderTask(msg) {
+    const g = task.grid ? '<div class="gr">' + [0, 4, 8, 12].map(b => '<div>' + task.grid.slice(b, b + 4).split('').map(x => `<i class="${x === 'x' ? 'on' : ''}"></i>`).join('') + '</div>').join('') + '</div>' : '';
+    $('#task').innerHTML = `<div><b>Lv${task.lv} ${LVN[task.lv - 1]}</b>・${KN[task.kind]}${task.rid.length ? '・' + task.rid.map(r => `<a data-rid="${r}">${r}</a>`).join(' ') : ''}</div><div class="tt">${task.text}</div>${g}<div class="sub">${task.tip || ''}</div>` +
+      `<div class="tb">${task.hl ? `<button id="tl" aria-pressed="${S.tl !== false}">指板に表示:${S.tl !== false ? 'ON' : 'OFF'}</button>` : ''}<button id="tn">次のお題</button><button id="td">できた</button><button id="tw">もう少し</button><span id="tm">${msg || ''}</span></div>`;
+    draw();   // お題の音を指板に反映
+  }
+  function newTask(msg) { task = TKS.pick(tctx(), lastId); lastId = task.id; renderTask(msg); }
+  $('#lv').onclick = e => { const b = e.target.closest('button'); if (b) { S.lv = +b.dataset.l; lvBtns(); newTask(); save(); } };
+  $('#task').onclick = e => { if (e.target.dataset.rid) { openBook(e.target.dataset.rid); return; } const id = e.target.id; if (!id) return;
+    if (id === 'tl') { S.tl = S.tl === false; renderTask(); return; }
+    if (id === 'tn') newTask();
+    if (id === 'td') { ST.markDone(DONE, S.lv, S.scale, S.sel); ST.save('done', DONE); newTask('✓ できた を記録'); }
+    if (id === 'tw') { ST.markWeak(WEAK, S.scale); ST.save('weak', WEAK); newTask('苦手に追加しました'); } };
+  let act = 0; document.addEventListener('pointerdown', () => { act = Date.now(); }, true);
+  setInterval(() => { if (document.hidden) return;   // 再生中、または直近1分以内に操作があった時間だけ加算
+    if (ADLEngine.running || ADLDrill.running || Date.now() - act < 60000) { ST.addTime(LOG, ST.dayKey(new Date()), 5); ST.save('log', LOG); }
+    if (ADLDrill.running && S.dr) { ADLDrills.addSec(DRS, S.dr.id, 5); ST.save('drill', DRS); } }, 5000);
+  const mm = sec => Math.round(sec / 60);
+  function renderLog() {
+    const now = new Date(), days = ST.lastDays(LOG, now, 7), max = Math.max(60, ...days.map(d => d.sec)), W = '日月火水木金土';
+    const bars = days.map((d, i) => { const h = Math.round(d.sec / max * 80); return `<rect x="${i * 56 + 12}" y="${96 - h}" width="32" height="${h}" rx="3"/><text x="${i * 56 + 28}" y="112">${W[d.dow]}</text>${d.sec ? `<text x="${i * 56 + 28}" y="${92 - h}">${mm(d.sec)}</text>` : ''}`; }).join('');
+    const total = Object.values(LOG).reduce((a, b) => a + b, 0), week = days.reduce((a, d) => a + d.sec, 0);
+    const rows = Object.entries(T.SCALES).map(([id, sc]) => { const n = (sc.base || sc.iv).length;
+      return `<tr><td>${sc.n}</td>` + [1, 2, 3, 4, 5].map(l => { const c = ST.doneCount(DONE, l, id); return `<td class="${c ? 'ok' : ''}">${c ? c + '/' + n : '–'}</td>`; }).join('') + '</tr>'; }).join('');
+    const wk = ST.weakTop(WEAK, 3).map(([id, c]) => `<div class="wk"><span>${T.SCALES[id] ? T.SCALES[id].n : id}(${c}回)</span><button data-go="${id}">練習へ</button></div>`).join('') || '<div style="color:var(--sub)">まだありません。お題で「もう少し」を押すと追加されます。</div>';
+    $('#rc').innerHTML = `<div class="stats"><div><span>今日</span><b class="big">${mm(LOG[ST.dayKey(now)] || 0)}分</b></div><div><span>今週</span><b class="big">${mm(week)}分</b></div><div><span>合計</span><b class="big">${mm(total)}分</b></div><div><span>連続日数</span><b class="big">${ST.streak(LOG, now)}日</b></div></div>` +
+      `<div><h3>この7日間の練習時間(分)</h3><svg class="bars" viewBox="0 0 400 120" width="100%">${bars}</svg></div>` +
+      `<div><h3>苦手なスケール</h3>${wk}</div>` +
+      `<div><h3>達成(レベル×スケール。数字=できたポジション数)</h3><table><tr><th></th>${[1, 2, 3, 4, 5].map(n => '<th>Lv' + n + '</th>').join('')}</tr>${rows}</table></div>` +
+      `<div><h3>基礎練習(できた回数・最高BPM・練習時間)</h3><table><tr><th>メニュー</th><th>回数</th><th>最高BPM</th><th>時間</th></tr>${ADLDrills.DRILLS.map(d => { const e = DRS[d.id]; return `<tr><td>${d.n}</td><td>${e && e.n ? e.n : '–'}</td><td>${e && e.best ? e.best : '–'}</td><td>${e && e.sec ? mm(e.sec) + '分' : '–'}</td></tr>`; }).join('')}</table></div>` +
+      `<div><h3>バックアップ(アンインストールで消えるため)</h3><textarea id="bkj" placeholder="ここに書き出し、または貼り付け"></textarea><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button id="bx">書き出す</button><button id="bc">コピー</button><button id="bi">読み込む</button><button id="br">記録をリセット</button></div><div id="bm" style="color:var(--char);font-size:12px;margin-top:4px"></div></div>`;
+  }
+  $('#rc').onclick = e => { const b = e.target.closest('button'); if (!b) return; const m = t => { $('#bm').textContent = t; };
+    if (b.dataset.go) { S.scale = b.dataset.go; $('#scale').value = S.scale; $('#tabs button[data-t=p]').click(); draw(); newTask(); return; }
+    if (b.id === 'bx') { $('#bkj').value = ST.exportAll(LOG, DONE, WEAK, FQS, DRS, ADLPhraseUI.getBackup(), S); m('書き出しました。コピーして保管してください'); }
+    if (b.id === 'bc') { const t = $('#bkj'); if (!t.value) t.value = ST.exportAll(LOG, DONE, WEAK, FQS, DRS, ADLPhraseUI.getBackup(), S); t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand('copy'); } m('コピーしました'); }
+    if (b.id === 'bi') { try { const o = ST.importAll($('#bkj').value); LOG = o.log; DONE = o.done; WEAK = o.weak; FQS = o.fq; DRS = o.dr; ADLPhraseUI.setBackup(o.ph); ['log', 'done', 'weak', 'fq', 'drill'].forEach(k => ST.save(k, { log: LOG, done: DONE, weak: WEAK, fq: FQS, drill: DRS }[k])); renderLog();
+      if (Object.keys(o.st).length) { const ns = Object.assign({}, o.st); try { localStorage.setItem(KEY, JSON.stringify(ns)); } catch (e) {} $('#bm').textContent = '読み込みました(設定を反映するため再読み込みします)'; setTimeout(() => location.reload(), 600); }   // 自作進行・音量などの設定は、起動時の検証を通して反映する
+      else $('#bm').textContent = '読み込みました(この書き出しに設定は含まれていません)'; } catch (x) { m('読み込めません: ' + x.message); } }
+    if (b.id === 'br' && confirm('練習時間・達成・苦手の記録をすべて消します。よろしいですか?')) { LOG = {}; DONE = {}; WEAK = {}; FQS = {}; DRS = {}; ['log', 'done', 'weak', 'fq', 'drill'].forEach(k => ST.save(k, {})); renderLog(); } };
+  // ---- 指板(ルート地図・クイズ) ----
+  const FQM = ADLFQ; let FQS = ST.load('fq', {}), FQ = { q: null, t0: 0, locked: false, res: null, ans: null, last: null };
+  S.fq = Object.assign({ sec: 'map', key: 7, shape: 'none', range: 'a', strs: 'all', mode: 'name' }, S.fq || {});
+  const fqCfg = () => { const inst = S.inst === 'keys' ? 'guitar' : S.inst, I = T.INSTR[inst], strings = I.strings, n = strings.length, c = S.fq;
+    return { inst, strings, n, maxFret: c.range === 'a' ? 12 : I.frets, strSet: c.strs === 'low3' ? [0, 1, 2] : strings.map((_, i) => i), left: S.left,
+      sid: inst + (inst === 'guitar' && S.tuning && S.tuning !== 'std' ? ':' + S.tuning : '') }; };
+  const strNo = (n, s) => n - s, nameOf = p => T.NOTE_S[p] === T.NOTE_F[p] ? T.NOTE_S[p] : T.NOTE_S[p] + '/' + T.NOTE_F[p];
+  const fqSeg = (id, list, cur) => `<span class="seg" id="${id}">${list.map(([k, n]) => `<button data-v="${k}" aria-pressed="${k === cur}">${n}</button>`).join('')}</span>`;
+  function fqCommon(c) { const lowTxt = c.n >= 6 ? '6・5・4弦のみ' : '低い3本のみ';
+    return `<div class="row2"><span>範囲 ${fqSeg('fq-range', [['a', '0〜12'], ['b', '0〜' + T.INSTR[c.inst].frets]], S.fq.range)}</span><span>弦 ${fqSeg('fq-strs', [['all', 'すべて'], ['low3', lowTxt]], S.fq.strs)}</span></div>`; }
+  function fqBoard(c, marks) { return ADLFret.plain({ strings: c.strings, view: { a: 0, b: c.maxFret }, left: c.left, marks }); }
+  function mapMarks(c) { const k = S.fq.key, m = [], sh = S.fq.shape, seen = new Set(), add = (x, cls, label) => { const id = x.s + ':' + x.f; if (seen.has(id)) return; seen.add(id); m.push({ s: x.s, f: x.f, cls, label }); };
+    const roots = []; for (let s = 0; s < c.n; s++) FQM.rootFrets(c.strings, k, s, c.maxFret).forEach(f => roots.push({ s, f }));
+    if (sh === 'oct') {   // オクターブ上の音も同じルート音。基準(オレンジ)から見た形だけを示し、残りは薄く
+      const refs = c.strSet.slice(0, 2).map(s => roots.find(r => r.s === s)).filter(Boolean);
+      refs.forEach(r => { add(r, 'root', T.noteName(k, k)); FQM.octaves(c.strings, r.s, r.f, c.maxFret).forEach(x => add(x, 'char', '8')); });
+      roots.forEach(r => add(r, 'dim', T.noteName(k, k))); return m; }
+    roots.forEach(r => add(r, c.strSet.includes(r.s) ? 'root' : 'dim', T.noteName(k, k)));
+    if (sh === 'p4') roots.filter(r => c.strSet.includes(r.s)).forEach(r => { const x = FQM.fourthUp(c.strings, r.s, r.f, c.maxFret); if (x) add(x, 'char', '4'); });
+    return m; }
+  function renderFQ() { const c = fqCfg(), f = S.fq, links = ids => ids.map(r => `<a data-rid="${r}" style="color:var(--root);text-decoration:underline;cursor:pointer">${r}</a>`).join(' ');
+    let h = `<div class="row2">${fqSeg('fq-sec', [['map', 'ルート地図'], ['quiz', '指板クイズ']], f.sec)}</div>` + fqCommon(c);
+    if (f.sec === 'map') {
+      const k = f.key, lines = [0, 1, 2].filter(s => s < c.n).map(s => `${strNo(c.n, s)}弦:${FQM.rootFrets(c.strings, k, s, 12).join('・')}フレット`).join('　');
+      h += `<div class="tg" id="fq-key">${T.NOTE_S.map((_, i) => `<button data-k="${i}" aria-pressed="${i === k}">${nameOf(i)}</button>`).join('')}</div>`;
+      h += `<div class="row2"><span>形 ${fqSeg('fq-shape', [['none', 'ルートだけ'], ['p4', '4度'], ['oct', 'オクターブ']], f.shape)}</span></div><div id="fq-board">${fqBoard(c, mapMarks(c))}</div>`;
+      h += `<h3>${T.noteName(k, k)} のルート</h3><p>${lines}</p><p><small>オレンジ=覚える3本の弦のルート、薄い丸=ほかの弦のルート${f.shape === 'p4' ? '、青緑「4」=1つ上の弦の4度(2弦だけ1フレット右にずれる)' : f.shape === 'oct' ? '、青緑「8」=オレンジ(最も低いフレットのルート)から見たオクターブ上の形' : ''}。指板をタップすると音が鳴ります。</small></p>`;
+      h += `<p>ルール:${links(['R14', 'R15', 'R16', 'R17'])}</p>`;
+    } else {
+      const sm = FQM.summary(FQS[c.sid] || {});
+      h += `<div class="row2"><span>出題 ${fqSeg('fq-mode', [['name', 'この音は?'], ['find', 'どこ?'], ['mix', '混合']], f.mode)}</span></div>`;
+      if (!FQ.q) FQ.q = FQM.makeQuestion({ strings: c.strings, maxFret: c.maxFret, strSet: c.strSet, mode: f.mode, stats: FQS[c.sid], last: FQ.last }), FQ.t0 = performance.now(), FQ.locked = false, FQ.res = null, FQ.ans = null;
+      const q = FQ.q, marks = [];
+      if (q.type === 'name') marks.push({ s: q.s, f: q.f, cls: FQ.res === 'ng' ? 'sol' : 'q', label: FQ.res ? T.NOTE_S[q.p] : '?' });
+      else if (FQ.res) { FQM.rootFrets(c.strings, q.p, q.s, c.maxFret).forEach(f2 => marks.push({ s: q.s, f: f2, cls: 'sol', label: T.NOTE_S[q.p] }));
+        if (FQ.res === 'ng' && FQ.ans) marks.push({ s: FQ.ans.s, f: FQ.ans.f, cls: 'bad', label: T.NOTE_S[FQM.noteAt(c.strings, FQ.ans.s, FQ.ans.f)] }); }
+      const prompt = q.type === 'name' ? 'この位置(?)は何の音?' : `${strNo(c.n, q.s)}弦の「${nameOf(q.p)}」はどこ? 指板をタップ`;
+      const msg = FQ.res === 'ok' ? `✓ 正解(${(FQ.ms / 1000).toFixed(1)}秒)` : FQ.res === 'ng' ? `✗ 正解は ${q.type === 'name' ? nameOf(q.p) : '光っている位置'}` : '';
+      h += `<div class="big">${prompt}</div><div id="fq-board">${fqBoard(c, marks)}</div><div class="fb ${FQ.res || ''}">${msg}${FQ.res === 'ng' ? ' <button class="go" id="fq-next">次へ</button>' : ''}</div>`;
+      if (q.type === 'name') h += `<div class="tg" id="fq-ans">${T.NOTE_S.map((_, i) => `<button data-p="${i}">${nameOf(i)}</button>`).join('')}</div>`;
+      h += `<h3>成績</h3><p>${sm.n}問・正答率 ${sm.rate}%・平均 ${(sm.avgMs / 1000).toFixed(1)}秒</p>`;
+      h += `<p>苦手(優先して出ます):${sm.worst.length ? sm.worst.map(id => FQM.label(id, c.n)).join('・') : 'まだありません'}</p><button class="go" id="fq-reset">成績をリセット</button><p><small>間違えた所と、答えるのが遅かった所を優先して出します。</small></p>`;
+    }
+    $('#fq').innerHTML = h; }
+  function fqAnswer(a) { if (FQ.locked || !FQ.q) return; const c = fqCfg(), q = FQ.q; FQ.locked = true; FQ.ms = performance.now() - FQ.t0;
+    const ok = FQM.judge(q, a, c.strings); FQ.res = ok ? 'ok' : 'ng'; FQ.ans = a;
+    const st = FQS[c.sid] = FQS[c.sid] || {}; FQM.record(st, q.id, ok, FQ.ms); ST.save('fq', FQS);
+    const pos = q.type === 'name' ? { s: q.s, f: q.f } : a; ADLAudio.mute([last[pos.s]]); last[pos.s] = ADLAudio.play(c.strings[pos.s] + pos.f);
+    FQ.last = q.id; renderFQ(); if (ok) setTimeout(fqNext, 700); }
+  function fqNext() { if (!FQ.res) return; FQ.q = null; if ($('#pg-f').hidden) return; renderFQ(); }
+  $('#fq').addEventListener('pointerup', e => { const h = e.target.closest('.hit'); if (!h) return; const c = fqCfg(), s = +h.dataset.s, f = +h.dataset.f;
+    if (S.fq.sec === 'quiz' && FQ.q && FQ.q.type === 'find') { fqAnswer({ s, f }); return; }
+    if (S.fq.sec === 'quiz') return;
+    ADLAudio.mute([last[s]]); last[s] = ADLAudio.play(c.strings[s] + f); });
+  $('#fq').onclick = e => { const b = e.target.closest('button'), a = e.target.closest('a');
+    if (a && a.dataset.rid) { openBook(a.dataset.rid); return; } if (!b) return; const sg = b.parentNode.id, v = b.dataset.v;
+    if (b.dataset.k != null) S.fq.key = +b.dataset.k;
+    else if (b.dataset.p != null) { fqAnswer({ p: +b.dataset.p }); return; }
+    else if (b.id === 'fq-next') { fqNext(); return; }
+    else if (b.id === 'fq-reset') { if (confirm('指板クイズの成績をすべて消します。よろしいですか?')) { FQS = {}; ST.save('fq', FQS); } }
+    else if (sg === 'fq-sec') S.fq.sec = v; else if (sg === 'fq-shape') S.fq.shape = v; else if (sg === 'fq-range') { S.fq.range = v; FQ.q = null; }
+    else if (sg === 'fq-strs') { S.fq.strs = v; FQ.q = null; } else if (sg === 'fq-mode') { S.fq.mode = v; FQ.q = null; } else return;
+    save(); renderFQ(); };
+  // ---- 基礎練習 ----
+  const DRM = ADLDrills; let DRS = ST.load('drill', {});
+  S.dr = Object.assign({ id: 'chroma', p: 5, dir: 'up', pat: 0, skip: 0, rhy: 0, fng: 3, bt: 2, sl: 3, unit: 2, bpm: 60, pick: 1, click: 1, snd: 1, sb: 0, max: 120, every: 2, add: 4 }, S.dr || {});
+  let DRX = { seq: [], grid: null, unit: 2, view: { a: 0, b: 15 }, els: {}, n: 0, bpm: 0 };
+  const DIRN = [['up', '6→1弦(低→高)'], ['down', '1→6弦(高→低)'], ['both', '往復']];
+  function drBuild() { const d = DRM.byId[S.dr.id], iname = S.inst === 'keys' ? 'guitar' : S.inst, I = T.INSTR[iname], strings = I.strings; let notes = [], view = { a: 0, b: 15 };
+    if (d.scale) { const ps = T.buildPositions(strings, T.SCALES[S.scale], S.key, I.frets), pos = ps[Math.max(1, S.sel || 1) - 1] || ps[0], lo = T.viewRange(I, 'low'), hi = T.viewRange(I, 'high');
+      let v = pos.variants.find(x => T.fitsView(x, lo)); if (v) view = lo; else { v = pos.variants.find(x => T.fitsView(x, hi)) || pos.variants[0]; view = hi; }
+      notes = DRM.notesOfVariant(v, strings); }
+    const r = DRM.build(d.id, { strings, p: S.dr.p, dir: S.dr.dir, pat: S.dr.pat, skip: S.dr.skip, rhy: S.dr.rhy, fng: S.dr.fng, bt: S.dr.bt, sl: S.dr.sl, notes });
+    DRX.seq = r.seq; DRX.grid = r.grid; DRX.unit = r.unit || S.dr.unit; DRX.view = view; DRX.strings = strings; }
+  const drSeg = (id, list, cur) => `<span class="seg" id="${id}">${list.map(([k, n]) => `<button data-v="${k}" aria-pressed="${String(k) === String(cur)}">${n}</button>`).join('')}</span>`;
+  function renderDR() { const c = S.dr, d = DRM.byId[c.id]; drBuild(); const o = d.opts, done = DRS[c.id];
+    let h = `<div class="row2"><select id="dr-id">${DRM.DRILLS.map(x => `<option value="${x.id}" ${x.id === c.id ? 'selected' : ''}>${x.n}</option>`).join('')}</select></div><p style="color:var(--sub);margin:4px 0">${d.desc}</p><div class="row2">`;
+    if (o.includes('p')) h += `<span>開始フレット <select id="dr-p">${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === c.p ? 'selected' : ''}>${i + 1}</option>`).join('')}</select>(人差し指の位置)</span>`;
+    if (o.includes('dir')) h += `<span>弦 ${drSeg('dr-dir', DIRN, c.dir)}</span>`;
+    if (o.includes('pat')) h += `<span>指の順番 <select id="dr-pat">${DRM.PATS.map((p, i) => `<option value="${i}" ${i === c.pat ? 'selected' : ''}>${p.join('-')}</option>`).join('')}</select></span>`;
+    if (o.includes('skip')) h += `<label class="chk"><input type="checkbox" id="dr-skip" ${c.skip ? 'checked' : ''}> 1本とばし</label>`;
+    if (o.includes('fng')) h += `<span>使う指 <select id="dr-fng">${[1, 2, 3, 4].map(k => `<option value="${k}" ${k === c.fng ? 'selected' : ''}>${k}${k === 3 ? '(薬指・定番)' : ''}</option>`).join('')}</select></span>`;
+    if (o.includes('bt')) h += `<span>上げる量 <select id="dr-bt">${[1, 2, 3].map(k => `<option value="${k}" ${k === c.bt ? 'selected' : ''}>${DRM.BTN[k]}</option>`).join('')}</select></span>`;
+    if (o.includes('sl')) h += `<span>滑らせる距離 <select id="dr-sl">${[1, 2, 3, 5, 7].map(k => `<option value="${k}" ${k === c.sl ? 'selected' : ''}>${k}フレット</option>`).join('')}</select></span>`;
+    if (o.includes('rhy')) h += `<span>リズム <select id="dr-rhy">${DRM.RHY.map((r, i) => `<option value="${i}" ${i === c.rhy ? 'selected' : ''}>${r.n}</option>`).join('')}</select></span>`;
+    if (d.scale) h += `<span style="color:var(--sub)">${T.noteName(S.key, S.key, S.scale)} ${T.SCALES[S.scale].n} ポジション${S.sel || 1}(練習タブで変更)</span>`;
+    if (!d.grid) h += `<span>音価 ${drSeg('dr-unit', [[2, '8分'], [4, '16分']], c.unit)}</span>`;
+    h += `</div><div class="row2"><label>BPM <input type="range" id="dr-bpm" min="40" max="200" value="${c.bpm}"> <b id="dr-bpmv">${c.bpm}</b></label>` +
+      `<label class="chk"><input type="checkbox" id="dr-pick" ${c.pick ? 'checked' : ''}> ピッキング表示</label><label class="chk"><input type="checkbox" id="dr-click" ${c.click ? 'checked' : ''}> メトロノーム</label><label class="chk"><input type="checkbox" id="dr-snd" ${c.snd ? 'checked' : ''}> 音を鳴らす</label></div>` +
+      `<div class="row2"><label class="chk"><input type="checkbox" id="dr-sb" ${c.sb ? 'checked' : ''}> スピードビルダー</label>` +
+      (c.sb ? `<span>上限 <select id="dr-max">${[80, 100, 120, 140, 160, 180, 200].map(v => `<option ${v === c.max ? 'selected' : ''}>${v}</option>`).join('')}</select>BPM</span><span><select id="dr-every">${[1, 2, 4, 8].map(v => `<option value="${v}" ${v === c.every ? 'selected' : ''}>${v}小節ごと</option>`).join('')}</select></span><span>+<select id="dr-add">${[2, 4, 5, 8].map(v => `<option ${v === c.add ? 'selected' : ''}>${v}</option>`).join('')}</select>BPM</span>` : '<small>数小節ごとにBPMが少しずつ上がります</small>') + '</div>';
+    const marks = [], seen = new Set(); DRX.seq.forEach(q => { const k = q.s + ':' + q.f; if (!seen.has(k)) { seen.add(k); marks.push({ s: q.s, f: q.f, cls: 'dim', label: q.fg ? q.fg : T.noteName(q.m, S.key, S.scale) }); } });
+    h += DRX.seq.length ? `<div id="dr-board">${ADLFret.plain({ strings: DRX.strings, view: DRX.view, left: S.left, marks })}</div>` : '<p>この設定では音が作れません。スケールの音が少なすぎます。</p>';
+    h += `<div class="big" id="dr-st"></div><div><button class="go" id="dr-go">▶ 開始</button><button class="go" id="dr-done">できた</button><span id="dr-msg" style="color:var(--char);font-size:12px"></span></div>` +
+      `<p><small>点滅=いま押さえる音、青緑=次の3音。数字は使う指(1=人差し指)。${done ? `記録:できた${done.n}回・最高${done.best}BPM・練習${mm(done.sec)}分` : 'まだ記録がありません'}</small></p>`;
+    $('#dr').innerHTML = h; DRX.els = {}; DRX.n = 0; document.querySelectorAll('#dr-board g.dot').forEach(g => { DRX.els[g.dataset.k] = g; }); }
+  const drStop = () => { if (ADLDrill.running) ADLDrill.stop(); };
+  const drCfg = () => ({ unit: DRX.unit, seq: DRX.seq, grid: DRX.grid, click: S.dr.click, sound: S.dr.snd, offset: S.offset || 0, bpm: S.dr.bpm, sb: S.dr.sb, max: Math.max(S.dr.max, S.dr.bpm), every: S.dr.every, add: S.dr.add });
+  const ART = { H: 'ハンマリング', P: 'プルオフ' };
+  function onDr(ev) { const st = $('#dr-st'); if (!st) return;
+    Object.values(DRX.els).forEach(g => g.classList.remove('cur', 'nxt'));
+    if (ev.stop) { $('#dr-go').textContent = '▶ 開始'; st.textContent = ''; wake(false); return; }
+    if (ev.cin) { st.textContent = 'カウント ' + (ev.beat + 1); return; }
+    DRX.bpm = ev.bpm; const q = ev.item;
+    if (q) { const idx = DRX.n++ % DRX.seq.length, cur = DRX.els[q.s + ':' + q.f];
+      for (let k = 1; k <= 3; k++) { const x = DRX.seq[(idx + k) % DRX.seq.length], g = DRX.els[x.s + ':' + x.f]; if (g && g !== cur) g.classList.add('nxt'); }
+      if (cur) { cur.classList.add('cur'); if (!matchMedia('(prefers-reduced-motion: reduce)').matches) cur.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 220 }); } }
+    const pk = S.dr.pick ? (ev.pick === 'down' ? '↓ ' : '↑ ') : '';
+    st.textContent = `${pk}${q ? (q.lbl ? q.lbl + ' ' : q.art ? ART[q.art] + ' ' : '') + (q.fg ? q.fg + '指' : T.noteName(q.m, S.key, S.scale)) : '休み'}　${ev.bpm} BPM・${ev.bar + 1}小節目${S.dr.sb && ev.bpm >= S.dr.max ? '・上限に到達' : ''}`; }
+  $('#dr').onchange = e => { const t = e.target, id = t.id; drStop();
+    if (id === 'dr-id') S.dr.id = t.value; else if (id === 'dr-p') S.dr.p = +t.value; else if (id === 'dr-pat') S.dr.pat = +t.value; else if (id === 'dr-rhy') S.dr.rhy = +t.value; else if (id === 'dr-fng') S.dr.fng = +t.value; else if (id === 'dr-bt') S.dr.bt = +t.value; else if (id === 'dr-sl') S.dr.sl = +t.value; else if (id === 'dr-skip') S.dr.skip = t.checked ? 1 : 0;
+    else if (id === 'dr-pick') S.dr.pick = t.checked ? 1 : 0; else if (id === 'dr-click') S.dr.click = t.checked ? 1 : 0; else if (id === 'dr-snd') S.dr.snd = t.checked ? 1 : 0; else if (id === 'dr-sb') S.dr.sb = t.checked ? 1 : 0;
+    else if (id === 'dr-max') S.dr.max = +t.value; else if (id === 'dr-every') S.dr.every = +t.value; else if (id === 'dr-add') S.dr.add = +t.value; else return;
+    save(); renderDR(); };
+  $('#dr').oninput = e => { if (e.target.id === 'dr-bpm') { S.dr.bpm = +e.target.value; $('#dr-bpmv').textContent = S.dr.bpm; save(); } };
+  $('#dr').onclick = e => { const b = e.target.closest('button'); if (!b) return; const sg = b.parentNode.id, v = b.dataset.v;
+    if (b.id === 'dr-go') { if (ADLDrill.running) { ADLDrill.stop(); return; } if (!DRX.seq.length) return; if (ADLEngine.running) ADLEngine.stop(); wake(true); DRX.n = 0; b.textContent = '■ 停止'; ADLDrill.start(drCfg, onDr); }
+    else if (b.id === 'dr-done') { DRM.markDone(DRS, S.dr.id, DRX.bpm || S.dr.bpm, ST.dayKey(new Date())); ST.save('drill', DRS); $('#dr-msg').textContent = `✓ ${DRX.bpm || S.dr.bpm} BPMで「できた」を記録`; }
+    else if (sg === 'dr-dir') { drStop(); S.dr.dir = v; save(); renderDR(); } else if (sg === 'dr-unit') { drStop(); S.dr.unit = +v; save(); renderDR(); } };
+  // ---- バッキング ----
+  const B = S.bk, names = o => Object.entries(o);
+  opts($('#bprog'), names(MU.PROGS).map(([k, v]) => [k, v.n]), B.prog);
+  opts($('#drum'), names(MU.DR).map(([k, v]) => [k, v.n]), B.drum);
+  opts($('#bass'), names(MU.NAMES.bass), B.bass); opts($('#comp'), names(MU.NAMES.comp), B.comp); $('#count').value = B.count;
+  const bset = (id, k, f) => { $(id).onchange = e => { B[k] = f ? f(e.target.value) : e.target.value; bsync(); save(); }; };
+  bset('#bprog', 'prog'); bset('#drum', 'drum'); bset('#bass', 'bass'); bset('#comp', 'comp'); bset('#shuf', 'shuffle', Number); bset('#fev', 'fadeEvery', Number); $('#shuf').value = B.shuffle; $('#fev').value = B.fadeEvery; bset('#count', 'count', Number);
+  $('#bpm').oninput = e => { B.bpm = +e.target.value; bsync(); save(); };
+  $('#swing').oninput = e => { B.swing = +e.target.value; bsync(); save(); };
+  $('#swm').onclick = e => { const b = e.target.closest('button'); if (b) { B.swMode = b.dataset.v; bsync(); save(); } };
+  ['band', 'phrase', 'drum', 'bass', 'chord'].forEach(n => { const el = $('#v-' + n); el.value = B.vol[n] * 100; ADLAudio.setVol(n, B.vol[n]);   // 保存済みの音量を起動時から反映
+    el.oninput = e => { B.vol[n] = e.target.value / 100; ADLAudio.setVol(n, B.vol[n]); const o = $('#h-v' + n); if (o) o.value = e.target.value; save(); }; });
+  let taps = [];
+  $('#tap').onclick = () => { const t = performance.now(); taps = taps.filter(x => t - x < 2000); taps.push(t);
+    if (taps.length > 1) { const d = (taps[taps.length - 1] - taps[0]) / (taps.length - 1); B.bpm = Math.max(40, Math.min(200, Math.round(60000 / d))); bsync(); save(); } };
+  // ---- 自作進行エディタ ----
+  const DEGN = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♭V', 'V', '♭VI', 'VI', '♭VII', 'VII'], QL = Object.keys(MU.QI);
+  let PE = { id: null, n: '', c: [[0, 'M'], [5, 'M'], [7, 'M'], [0, 'M']], msg: '' };
+  const peOpts = () => { const s = Object.entries(MU.PROGS).map(([k, v]) => [k, v.n]); $('#bprog').innerHTML = s.map(([k, n]) => `<option value="${k}">${n}</option>`).join(''); $('#bprog').value = B.prog; };
+  function peRender() {
+    const pv = PE.c.map(x => T.noteName((S.key + x[0]) % 12, S.key) + MU.QS[x[1]]).join(' | ');
+    const own = Object.entries(S.cp).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join(''), all = Object.entries(MU.PROGS).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join('');
+    $('#pe-body').innerHTML = `<div class="pr"><input type="text" id="pe-n" maxlength="30" placeholder="進行の名前" value="${PE.n.replace(/"/g, '&quot;')}"></div>` +
+      PE.c.map((x, i) => `<div class="pr"><b>${i + 1}</b><select data-i="${i}" data-k="r">${DEGN.map((d, k) => `<option value="${k}"${k === x[0] ? ' selected' : ''}>${d}</option>`).join('')}</select>` +
+        `<select data-i="${i}" data-k="q">${QL.map(q => `<option value="${q}"${q === x[1] ? ' selected' : ''}>${MU.QS[q] || 'メジャー'}${q === 'M' ? '(M)' : ''}</option>`).join('')}</select><button data-a="del" data-i="${i}"${PE.c.length < 2 ? ' disabled' : ''}>✕</button></div>`).join('') +
+      `<div class="pv">いまのキーでは: ${pv}</div><div class="pr"><button data-a="add"${PE.c.length >= 16 ? ' disabled' : ''}>＋小節を追加</button><button data-a="dup">同じ小節をコピー</button></div>` +
+      `<div class="pr"><select id="pe-ld"><option value="">既存の進行を読み込む…</option>${all}</select></div>` +
+      `<div class="pr"><button class="go" data-a="save">保存して使う</button><button data-a="new">新規</button>${PE.id ? '<button data-a="rm">この進行を削除</button>' : ''}</div><div class="pv">${PE.msg || (PE.id ? '編集中: 自作進行' : '新規の進行')}</div>`;
+  }
+  $('#pe-body').onchange = e => { const t = e.target;
+    if (t.id === 'pe-ld') { const p = MU.PROGS[t.value]; if (!p) return; PE = { id: t.value.startsWith('u_') ? t.value : null, n: t.value.startsWith('u_') ? p.n : p.n + '(改)', c: p.c.map(x => [x[0], x[1]]), msg: '' }; return peRender(); }
+    if (t.dataset.k) { PE.c[+t.dataset.i][t.dataset.k === 'r' ? 0 : 1] = t.dataset.k === 'r' ? +t.value : t.value; peRender(); } };
+  $('#pe-body').oninput = e => { if (e.target.id === 'pe-n') PE.n = e.target.value; };
+  $('#pe-body').onclick = e => { const b = e.target.closest('button'); if (!b) return; const a = b.dataset.a;
+    if (a === 'add' && PE.c.length < 16) PE.c.push(PE.c[PE.c.length - 1].slice());
+    else if (a === 'dup' && PE.c.length * 2 <= 16) PE.c = PE.c.concat(PE.c.map(x => x.slice()));
+    else if (a === 'del' && PE.c.length > 1) PE.c.splice(+b.dataset.i, 1);
+    else if (a === 'new') PE = { id: null, n: '', c: [[0, 'M'], [5, 'M'], [7, 'M'], [0, 'M']], msg: '' };
+    else if (a === 'rm') { delete S.cp[PE.id]; S.cp = MU.setCustom(S.cp); if (B.prog === PE.id) B.prog = 'minor4'; PE = { id: null, n: '', c: PE.c, msg: '削除しました' }; peOpts(); bsync(); save(); }
+    else if (a === 'save') { const id = PE.id || 'u_' + Date.now().toString(36); S.cp[id] = { n: PE.n.trim() || '自作進行', c: PE.c }; S.cp = MU.setCustom(S.cp);
+      if (!MU.PROGS[id]) { PE.msg = '保存できませんでした'; return peRender(); } PE.id = id; B.prog = id; pvBar = -1; peOpts(); bsync(); save(); PE.msg = '保存して、この進行を選びました'; }
+    peRender(); };
+  peRender();
+  let curBar = -1, seq = [], keyBefore = null, pvBar = -1;   // pvBar=停止中にタップで選んだコード(自動スケール用)
+  const autoInfo = () => { const bar = ADLEngine.running && curBar >= 0 ? curBar : pvBar; return bar >= 0 ? MU.chordScale(B.prog, S.key, bar) : null; };
+  $('#asc').checked = !!B.autoSc; $('#asc').onchange = e => { B.autoSc = e.target.checked; draw(); save(); };
+  $('#chips').onclick = e => { const sp = e.target.closest('span[data-i]'); if (!sp || ADLEngine.running) return; pvBar = pvBar === +sp.dataset.i ? -1 : +sp.dataset.i; if (pvBar >= 0) ct = MU.chordAt(B.prog, S.key, pvBar).pcs; else ct = null; chips(); draw(); };
+  const keyFor = lap => { const i = Math.floor(lap / B.shuffle); while (seq.length <= i) { let k; do { k = Math.floor(Math.random() * 12); } while (k === seq[seq.length - 1]); seq.push(k); } return seq[i]; };
+  function chips() { $('#chips').innerHTML = MU.PROGS[B.prog].c.map((_, i) => { const c = MU.chordAt(B.prog, S.key, i); return `<span data-i="${i}" class="${i === (ADLEngine.running ? curBar : pvBar) ? 'on' : ''}">${c.name}</span>`; }).join(''); $('#pchips').innerHTML = $('#chips').innerHTML; }
+  function bsync() {
+    $('#bpmv').textContent = B.bpm; $('#bpm').value = B.bpm; $('#swv').textContent = B.swing + '%'; $('#swing').value = B.swing;
+    document.querySelectorAll('#swm button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === B.swMode));
+    chips();
+    for (const [id, k] of [['prog', 'prog'], ['drum', 'drum'], ['bass', 'bass'], ['comp', 'comp']]) { $('#pb-' + id).innerHTML = $('#' + (id === 'prog' ? 'bprog' : id)).innerHTML; $('#pb-' + id).value = B[k]; }
+    $('#pb-bpm').value = B.bpm; $('#pb-bpmv').textContent = B.bpm; $('#pb-vol').value = Math.round(B.vol.band * 100); $('#pb-asc').checked = !!B.autoSc;
+  }
+  const cfg = () => ({ keyFor: B.shuffle > 0 ? keyFor : null, offset: S.offset || 0, bpm: B.bpm, swing: B.swing, swMode: B.swMode, count: B.count, prog: B.prog, key: S.key, drum: B.drum, bass: B.bass, comp: B.comp, hook: ADLPhraseUI.hook });
+  function onStep(ev) {
+    ADLPhraseUI.onStep(ev);
+    if (ev.stop) { if (keyBefore != null) { S.key = keyBefore; $('#key').value = S.key; keyBefore = null; } curBar = -1; lapNo = 0; ct = null; $('#cur').textContent = '—'; $('#play').textContent = '▶'; chips(); draw(); return; }
+    if (ev.bar < 0) { $('#cur').textContent = 'カウント ' + (ev.beat + 1); return; }
+    const kc = ev.key != null && ev.key !== S.key; if (kc) { S.key = ev.key; $('#key').value = S.key; }
+    const ch = MU.chordAt(B.prog, S.key, ev.bar), lc = ev.lap !== lapNo; lapNo = ev.lap;
+    $('#cur').textContent = ch.name + '  ' + (ev.beat + 1);
+    if (ev.bar !== curBar || kc || lc) { curBar = ev.bar; ct = ch.pcs; chips(); draw(); }
+  }
+  let wl = null;
+  const wake = async on => { try { if (on) wl = await navigator.wakeLock.request('screen'); else if (wl) { await wl.release(); wl = null; } } catch (e) {} };
+  document.addEventListener('visibilitychange', () => { if (document.hidden && ADLEngine.running) ADLEngine.stop(); if (document.hidden) drStop(); });
+  $('#gear').onclick = () => { $('#off').value = S.offset || 0; $('#offv').textContent = (S.offset || 0) + 'ms'; $('#tun').value = S.tuning || 'std'; $('#set').showModal(); };
+  $('#off').oninput = e => { S.offset = +e.target.value; $('#offv').textContent = S.offset + 'ms'; save(); };
+  $('#tun').onchange = e => { S.tuning = e.target.value; draw(); };
+  $('#setx').onclick = () => $('#set').close();
+  $('#play').onclick = () => { drStop(); if (ADLEngine.running) { ADLEngine.stop(); wake(false); } else { wake(true); curBar = -1; lapNo = 0; seq = [S.key]; keyBefore = S.key; $('#play').textContent = '■'; ADLEngine.start(cfg, onStep); } };
+  // 練習タブのバッキング操作(伴奏タブと同じ設定を共有)
+  [['prog', 'bprog'], ['drum', 'drum'], ['bass', 'bass'], ['comp', 'comp']].forEach(([k, src]) => { $('#pb-' + k).onchange = e => { B[k] = e.target.value; $('#' + src).value = B[k]; bsync(); save(); }; });
+  $('#pb-bpm').oninput = e => { B.bpm = +e.target.value; bsync(); save(); };
+  $('#pb-vol').oninput = e => { $('#v-band').value = e.target.value; $('#v-band').dispatchEvent(new Event('input')); };
+  $('#pb-asc').onchange = e => { B.autoSc = e.target.checked; $('#asc').checked = B.autoSc; draw(); save(); };
+  $('#pb-play').onclick = () => $('#play').click();
+  $('#pchips').onclick = e => { const sp = e.target.closest('span[data-i]'); const t = sp && $('#chips').querySelector('span[data-i="' + sp.dataset.i + '"]'); if (t) t.click(); };
+  new MutationObserver(() => { $('#pb-play').textContent = $('#play').textContent === '■' ? '■ 停止' : '▶ 再生'; $('#pb-cur').textContent = $('#cur').textContent; }).observe($('#top'), { childList: true, subtree: true, characterData: true });
+  // 指板の拡大・縮小(ボタン/ピンチ)。S.zoom=1で幅880px、全体=画面幅に収める
+  S.zoom = +S.zoom >= 0.3 && +S.zoom <= 2.5 ? +S.zoom : 1;
+  const applyZoom = () => document.documentElement.style.setProperty('--fw', Math.round(880 * S.zoom) + 'px');
+  function setZoom(z) {
+    z = Math.min(2.5, Math.max(0.3, z)); const el = ['#fret', '#h-fret'].map(q => $(q)).find(e => e && e.offsetParent);
+    const r = el && el.scrollWidth ? (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth : 0.5;
+    S.zoom = z; applyZoom(); if (el) el.scrollLeft = r * el.scrollWidth - el.clientWidth / 2; save();
+  }
+  applyZoom();
+  document.addEventListener('click', e => { const b = e.target.closest('.zm button'); if (!b) return; setZoom(b.dataset.z === 'in' ? S.zoom * 1.25 : b.dataset.z === 'out' ? S.zoom / 1.25 : 0.3); });
+  { let pz = null; const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    document.addEventListener('touchstart', e => { if (e.touches.length === 2 && e.target.closest('#fret,#h-fret')) { pz = { d: dist(e.touches), z: S.zoom }; window.__pinch = true; } }, { passive: true });
+    document.addEventListener('touchmove', e => { if (pz && e.touches.length === 2) { e.preventDefault(); setZoom(pz.z * dist(e.touches) / pz.d); } }, { passive: false });
+    document.addEventListener('touchend', e => { if (pz && e.touches.length < 2) { pz = null; setTimeout(() => { window.__pinch = false; }, 350); } }); }
+  ADLPhraseUI.init({ S, B, MU, draw, bsync, save, autoInfo });
+  bsync();
+  draw();
+  lvBtns(); newTask();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "adlib-dojo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "test": "node tests/positions.test.js && node tests/music.test.js && node tests/m4.test.js && node tests/book.test.js && node tests/theory.test.js && node tests/fretquiz.test.js && node tests/drills.test.js && node tests/phrase.test.js && node tests/licks.test.js" },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  }
+}
